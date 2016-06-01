@@ -26,7 +26,7 @@ void Hotboards_flash::write( uint32_t address, uint8_t data )
 }
 
 
-void Hotboards_flash::write( uint32_t address, uint8_t *data, uint16_t size )
+void Hotboards_flash::write( uint32_t address, uint8_t *data, uint32_t size )
 {
     uint16_t temp;
     /* just to cover your ass, check if the address is a valid direction */
@@ -53,7 +53,7 @@ uint8_t Hotboards_flash::read( uint32_t address )
 }
 
 
-void Hotboards_flash::read( uint32_t address, uint8_t *data, uint16_t size )
+void Hotboards_flash::read( uint32_t address, uint8_t *data, uint32_t size )
 {
     uint16_t i;
     /* just to cover your ass, check if the address is a valid direction */
@@ -92,7 +92,7 @@ void Hotboards_flash::sendAddress( uint8_t cmd, uint32_t address )
         SPI.transfer( ( uint8_t )address );
 }
 
-void Hotboards_flash::writeFlash( uint32_t address, uint8_t *data, uint16_t size )
+void Hotboards_flash::writeFlash( uint32_t address, uint8_t *data, uint32_t size )
 {
     uint16_t i;
     for( i = 0 ; i < size ; i++ )

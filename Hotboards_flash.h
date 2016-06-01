@@ -79,7 +79,7 @@ class Hotboards_flash
           *   mem.write( 0, array, 6 );
           * @endcode
           */
-        void write( uint32_t address, uint8_t *data, uint16_t size );
+        void write( uint32_t address, uint8_t *data, uint32_t size );
 
         /** read a single byte from a given flash address
           * @param address flash address where the byte will be read
@@ -104,7 +104,7 @@ class Hotboards_flash
           *   mem.read( 0, array, 6 );
           * @endcode
           */
-        void read( uint32_t address, uint8_t *data, uint16_t size );
+        void read( uint32_t address, uint8_t *data, uint32_t size );
         
         /** read the status register from the memory 
           *returns the value from the register used to know if the memory is locked or busy
@@ -153,7 +153,7 @@ class Hotboards_flash
 
     private :
         void    sendAddress( uint8_t cmd, uint32_t address );
-        void    writeFlash( uint32_t address, uint8_t *data, uint16_t size );
+        void    writeFlash( uint32_t address, uint8_t *data, uint32_t size );
         uint8_t isBusy(void);
         uint8_t _cs_pin;
         uint8_t _type;
