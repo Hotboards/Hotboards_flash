@@ -94,32 +94,75 @@ void Hotboards_flash::sendAddress( uint8_t cmd, uint32_t address )
 
 void Hotboards_flash::writeFlash( uint32_t address, uint8_t *data, uint32_t size )
 {
-    uint16_t i;
-    for( i = 0 ; i < size ; i++ )
-    {
+        uint8_t mod;
+         /*Unlock memory*/
+        writeStatus( UNLOCK );
         /* Select memory */
         digitalWrite( _cs_pin, LOW );
         /* write eneable latch */
         SPI.transfer( WREN );
         /* Unselect flash */
         digitalWrite( _cs_pin, HIGH );
-        delay(10);
-        /* Select memory */
-        digitalWrite( _cs_pin, LOW );
-        /* Send comand write and address, depend on device is the number of address bytes neccesary */
-        sendAddress( WRITE, address + i );
-        /* Write data to memory */
-        SPI.transfer( *data );
-        data++;
-        /* Unselect flash */
-        digitalWrite( _cs_pin, HIGH );
-    }
-    
+        /*Waiting for the end of command*/
+        while( isBusy() == 1 );
+        /*Size only can be a number divisible by two*/
+        mod = size % 2;
+ 
+        if(( size > 1 ) & ( mod == 0 )) 
+        {
+            /* Select memory */
+            digitalWrite( _cs_pin, LOW );
+            /*Set auto address increment to write multiple words*/
+            sendAddress( AAI, address);
+            /* Auto address increment only write WORDS two bytes size*/
+            for( uint32_t i = 0; i < size  ; i++ ) 
+            {
+                /*Send data Most significative byte*/
+                SPI.transfer(*data);
+                /*Increment pointer*/
+                data++;
+                /*Send less significative byte*/
+                SPI.transfer(*data);
+                /*Increment pointer*/
+                data++;
+                /*Unselect memory*/
+                digitalWrite( _cs_pin, HIGH );
+                /*Wait to finish the process*/
+                while( isBusy() == 1 );
+                /*Prepare to write another WORD*/
+                digitalWrite( _cs_pin, LOW );
+                /*Auto address incroement*/
+                SPI.transfer( AAI );
+            }
+            /*Unselect memory to cancel last AAI command*/
+            digitalWrite( _cs_pin, HIGH );
+            /*Wait to finish the process*/
+            while( isBusy() == 1 );
+            /*Select memory*/
+            digitalWrite( _cs_pin, LOW );
+            /*Disable write to finish Auto address increment*/
+            SPI.transfer(WRDI);
+            /*Unselect memory*/
+            digitalWrite( _cs_pin, HIGH );
+        }
+        if(size == 1)/*Write only one byte*/
+        {
+            /* Select memory */
+            digitalWrite( _cs_pin, LOW );
+            /* Send comand write and address, depend on device is the number of address bytes neccesary */
+            sendAddress( WRITE, address);
+            /* Write data to memory */
+            SPI.transfer( *data );
+            /* Unselect flash */
+            digitalWrite( _cs_pin, HIGH );
+        }
+        /*Wait to finish the process*/
+        while( isBusy() == 1 );  
 }
 
 uint8_t Hotboards_flash::isBusy(void)
 {
-    uint8_t state = 0xFF;
+    uint8_t state = 0x00;
     /*If state == 1 the flash memory is busy*/
     state = readStatus() & 0x01;
     return state;
@@ -149,7 +192,6 @@ void Hotboards_flash::writeStatus( uint8_t bitConfig )
   SPI.transfer( EWSR );
   /*Unselect memory*/
   digitalWrite( _cs_pin, HIGH );
-  delay(10);
   /*Select memory*/
   digitalWrite( _cs_pin, LOW );
   /*Write status register*/
@@ -162,40 +204,47 @@ void Hotboards_flash::writeStatus( uint8_t bitConfig )
 
 void Hotboards_flash::eraseSector( uint8_t sector, uint32_t address )
 {
- /*Select memory*/
-  digitalWrite( _cs_pin, LOW );
-  /*Enable write status register*/
-  SPI.transfer( WREN );
-  /*Unselect memory*/
-  digitalWrite( _cs_pin, HIGH );
-  delay(10);
-  /*Select memory*/
-  digitalWrite( _cs_pin, LOW );
-  /*Size of sector to erase*/
-  SPI.transfer( sector );
-  /*Address from sector to erase*/
-  SPI.transfer((uint8_t)(address >> 16));
-  SPI.transfer((uint8_t)(address >> 8));
-  SPI.transfer((uint8_t) address);
+    /*Unlock memory*/
+    writeStatus( UNLOCK );
+    /*Select memory*/
+    digitalWrite( _cs_pin, LOW );
+    /*Enable write status register*/
+    SPI.transfer( WREN );
+    /*Unselect memory*/
+    digitalWrite( _cs_pin, HIGH );
+    /*Waiting for the end of command*/
+    while( isBusy() == 1 );
+    /*Select memory*/
+    digitalWrite( _cs_pin, LOW );
+    /*Size of sector to erase*/
+    SPI.transfer( sector );
+    /*Address from sector to erase*/
+    SPI.transfer((uint8_t)(address >> 16));
+    SPI.transfer((uint8_t)(address >> 8));
+    SPI.transfer((uint8_t) address);
 
-  /*Unselect memory*/
-  digitalWrite( _cs_pin, HIGH );
+    /*Unselect memory*/
+    digitalWrite( _cs_pin, HIGH );
+    while( isBusy() == 1 );
 }
 
 void Hotboards_flash::chipErase(void)
 {
-  /*Select memory*/
-  digitalWrite( _cs_pin, LOW );
-  /*Enable write status register*/
-  SPI.transfer( WREN );
-  /*Unselect memory*/
-  digitalWrite( _cs_pin, HIGH );
-  delay(10);
-  /*Select memory*/
-  digitalWrite( _cs_pin, LOW );
+    /*Unlock memory*/
+    writeStatus( UNLOCK );
+    /*Select memory*/
+    digitalWrite( _cs_pin, LOW );
+    /*Enable write status register*/
+    SPI.transfer( WREN );
+    /*Unselect memory*/
+    digitalWrite( _cs_pin, HIGH );
+    /*Waiting for the end of command*/
+    while( isBusy() == 1 );
+    /*Select memory*/
+    digitalWrite( _cs_pin, LOW );
   /*Instruction to erase all*/
-  SPI.transfer(ERASE_CHIP);
-  /*Unselect memory*/
-  digitalWrite( _cs_pin, HIGH );
-  delay(100);
+    SPI.transfer(ERASE_CHIP);
+    /*Unselect memory*/
+    digitalWrite( _cs_pin, HIGH );
+     while( isBusy() == 1 );
 }

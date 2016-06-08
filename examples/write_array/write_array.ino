@@ -20,18 +20,17 @@
 #include <Hotboards_flash.h>
 #include <SPI.h>
 
-/* arrays to test eeprom driver */
-uint8_t write_array[ 9 ] = {1,2,3,4,5,6,7,8,9};
-uint8_t read_array[ 9 ];
+/* arrays to test flash driver */
+uint8_t write_array[ 10 ] = {1,2,3,4,5,6,7,8,9,10};
+uint8_t read_array[ 10 ];
 
-/* lets create an eeprom instance, the frist paramter is the CS pin and th second one 
-   is the memory density (32Kb),  */
+/* lets create an flash instance, the frist paramter is the CS pin and th second one 
+   is the memory density (4Mb),  */
 Hotboards_flash flash( 7, FLASH_SST25VF_4Mb );
 
 void setup( void ) 
 {
     uint8_t i;
-    uint8_t registerStatus;
     
     /*open serial port and send welcome message*/
     Serial.begin( 9600 );
@@ -44,37 +43,23 @@ void setup( void )
     
     /* initialize flash driver */
     flash.begin( );
-    
-    /*Read status register*/
-    registerStatus = flash.readStatus( );
-    delay( 100 );
-    
-    /* If the Status register is greater than 0x04, probabbly some sectors from the 
-    memory are locked.*/
-    /*to unlock all the memory sectors we have to write this status
-    register with 0x00*/
-    if( registerStatus > 0x04 ) 
-    {
-      flash.writeStatus( 0x00 );
-    }
     /*First, to write a byte is necessary erase it*/
    /*You have to erase a complete sector in the memory, cannot erase only one byte*/
    /*First parameter is the sector size, the second is the address where begin*/
     flash.eraseSector(ERASE_4K,0x00);
-    delay(100);
     
-    /* write an array of data, starting at address 0x00 */
+    /* write an array of data, starting at address 0x00 only works if size is even*/
     Serial.println( "Writing array of bytes" );
-    flash.write( 0, write_array, 9 );
+    flash.write( 0, write_array, 10 );
     
-    /* read the same array already store it at eeprom */
+    /* read the same array already store it at flash */
     Serial.println( "Reading array of bytes" );
-    flash.read( 0, read_array, 9 );
+    flash.read( 0, read_array, 10 );
     
     /* this for loop is only to display the array using the serial port */
     Serial.println( "Addr | value" );
     
-    for( i=0 ; i<9 ; i++ ) 
+    for( i=0 ; i< 10 ; i++ ) 
     {
         Serial.print( "0x" );
         Serial.print( i, HEX );

@@ -23,11 +23,12 @@
    is the memory density (4Mb),  */
 Hotboards_flash flash( 7, FLASH_SST25VF_4Mb );
 
+uint8_t data[4] = { 1, 2, 3, 4 };
+uint8_t dataR[4];
 void setup( void ) 
 {
     /* variable to hold the read it value from the memory */
     uint8_t var;
-    uint8_t registerStatus;
     /*open serial port and send welcome message*/
     Serial.begin( 9600 );
     /* since the driver needs the spi, we need to configure it before */
@@ -37,50 +38,49 @@ void setup( void )
 
     /* initialize flash driver */
     flash.begin();
-    /*Read status register*/
-    registerStatus = flash.readStatus( );
-    delay( 100 );
-    /* If the Status register is greater than 0x04, probabbly some sectors from the 
-    memory are locked.*/
-    /*to unlock all the memory sectors we have to write this status
-    register with 0x00*/
-    if( registerStatus > 0x04 ) 
-    {
-      flash.writeStatus( 0x00 );
-    }
    /*First, to write a byte is necessary erase it*/
-   /*You have to erase a complete sector in the memory, cannot erase only one byte*/
+   /*You have to erase a complete sector  or all the memory, cannot erase only one byte*/
    /*Erase all memory*/
     flash.chipErase();
     delay(100);
     
     /*Read the address before to write it, if var = 0xFF means is erased.*/
     Serial.println("Before to write");
-    var = flash.read( 0 );
-    Serial.print( "var = " );
-    Serial.println( var, HEX );
+    flash.read( 0 ,dataR, 4);
+    printData(dataR,4);
     
    /* write a byte with 0xBB value at address 0x00 */
     Serial.println( "Writing" );
-    flash.write( 0x00, 0xBB );
+    flash.write( 0x00, data, 4 );
     
     /* read the same value already store it at eeprom */
-    var = flash.read( 0x00 );
-    Serial.print( "var = " );
-    Serial.println( var, HEX ); 
+    flash.read( 0x00 ,dataR, 4 );
+    printData(dataR,4);
     
     flash.chipErase();
 
     /* read the same value already store it at eeprom */
-    var = flash.read( 0x00 );
+    flash.read( 0x00,dataR,4 );
     Serial.println("All memory erased");
-    Serial.print( "var = " );
-    Serial.println( var, HEX ); 
+    printData(dataR,4);
 }
 
 void loop( void ) 
 {
     /* since this example only requires one time excution, is not necesary 
        to put anything here */
+}
+
+void printData(uint8_t * data,uint8_t size)
+{
+    Serial.println( "Addr | value" );
+    uint8_t i = 0;
+    for( i=0 ; i< size ; i++ ) 
+    {
+        Serial.print( "0x" );
+        Serial.print( i, HEX );
+        Serial.print( "     " );
+        Serial.println( data[ i ],HEX );
+    }  
 }
 

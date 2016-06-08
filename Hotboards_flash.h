@@ -10,10 +10,12 @@
 #define RDST        0x05
 #define WREN        0x06
 #define EWSR        0x50
+#define AAI         0xAD
 #define ERASE_4K    0x20
 #define ERASE_32K   0x52
 #define ERASE_64K   0xD8
 #define ERASE_CHIP  0x60
+#define UNLOCK      0x00
 
 
 
@@ -105,27 +107,7 @@ class Hotboards_flash
           * @endcode
           */
         void read( uint32_t address, uint8_t *data, uint32_t size );
-        
-        /** read the status register from the memory 
-          *returns the value from the register used to know if the memory is locked or busy
-          * Example:
-          * @code
-          * uint8_t state;
-          * state = mem.readStatus( );
-          * @endcode
-          */
-        uint8_t readStatus( void );
-        
-        /** Write the register status, used to lock the memory
-          * @param bits to configure
-          * Example:
-          * @code
-          * //Unlock all memory
-          *   mem.writeStatus( 0 );
-          * @endcode
-          */
-        void writeStatus( uint8_t bitConfig );
-        
+           
         /** Erase a sector from the memory starting at the given address
           * the sectors can be : ERASE_4K,ERASE_32K,ERASE_64K
           * @param size of the sector to be erased
@@ -137,7 +119,7 @@ class Hotboards_flash
           *   mem.eraseSector( ERASE_4K, 0x00);
           * @endcode
           */
-       void eraseSector( uint8_t sector, uint32_t address );
+        void eraseSector( uint8_t sector, uint32_t address );
        
          /** Erase all memory
           * this instruction will take 100 ms
@@ -152,8 +134,11 @@ class Hotboards_flash
        void chipErase(void);
 
     private :
-        void    sendAddress( uint8_t cmd, uint32_t address );
-        void    writeFlash( uint32_t address, uint8_t *data, uint32_t size );
+        void     sendAddress( uint8_t cmd, uint32_t address );
+        void     writeFlash( uint32_t address, uint8_t *data, uint32_t size );
+        void     writeStatus( uint8_t bitConfig );
+        uint8_t  readStatus( void );
+        
         uint8_t isBusy(void);
         uint8_t _cs_pin;
         uint8_t _type;

@@ -27,7 +27,6 @@ void setup( void )
 {
     /* variable to hold the read it value from the memory */
     uint8_t var;
-    uint8_t registerStatus;
     /*open serial port and send welcome message*/
     Serial.begin( 9600 );
     /* since the driver needs the spi, we need to configure it before */
@@ -37,34 +36,25 @@ void setup( void )
 
     /* initialize flash driver */
     flash.begin();
-    /*Read status register*/
-    registerStatus = flash.readStatus( );
-    delay( 100 );
-    /* If the Status register is greater than 0x04, probabbly some sectors from the 
-    memory are locked.*/
-    /*to unlock all the memory sectors we have to write this status
-    register with 0x00*/
-    if( registerStatus > 0x04 ) 
-    {
-      flash.writeStatus( 0x00 );
-    }
+    
    /*First, to write a byte is necessary erase it*/
    /*You have to erase a complete sector in the memory, cannot erase only one byte*/
    /*First parameter is the sector size, the second is the address where begin*/
     flash.eraseSector(ERASE_4K,0x00);
-    delay(100);
-    
     /*Read the address before to write it, if var = 0xFF means is erased.*/
     var = flash.read( 0 );
+
+    /*Check if is erased*/
+    Serial.println("Erased: ");
     Serial.print( "var = " );
     Serial.println( var, HEX );
     
-   /* write a byte with 0xAA value at address 0x00 */
+   /* write a byte with 0xBB value at address 0x00 */
     Serial.println( "Writing an single byte on addres 0x00" );
-    flash.write( 0x00, 0xAA );
+    flash.write( 0x00, 0xBB );
     
     /* read the same value already store it at eeprom */
-    var = flash.read( 0x00 );
+    var = flash.read( 0 );
     Serial.print( "var = " );
     Serial.println( var, HEX ); 
 }
